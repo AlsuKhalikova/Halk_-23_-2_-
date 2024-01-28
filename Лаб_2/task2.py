@@ -1,3 +1,5 @@
+from typing import List
+from pydantic import BaseModel
 BOOKS_DATABASE = [
     {
         "id": 1,
@@ -13,25 +15,43 @@ BOOKS_DATABASE = [
 
 
 # TODO написать класс Book
-class Book:
-    def __init__(self, id_, name, pages):
-        self.id = id_
-        self.name = name
-        self.pages = pages
+class Book(BaseModel):
+    id_: int
+    name: str
+    pages: int
 
-    def __str__(self):
-        return f'Книга "{self.name}"'
 
-    def __repr__(self):
-        return f'Book(id_={self.id!r}, name={self.name!r}, pages={self.pages!r})'
+# TODO написать класс Library
+class Library(BaseModel):
+    books: List[Book] = []
+
+    def get_next_book_id(self):
+        next_id = None
+        if not self.books:
+            return 1
+        if self.books:
+            for index in list(enumerate(self.books)):
+                i = index[0]
+                next_id = self.books[i].id_ + 1
+            return next_id
+
+    def get_index_by_book_id(self, idy):
+        for index in list(enumerate(self.books)):
+            i = index[0]
+            if self.books[i].id_ == idy:
+                return i
+        else:
+            raise ValueError("Книги с запрашиваемым id не существует")
 
 
 if __name__ == '__main__':
-    # инициализируем список книг
+    empty_library = Library()  # инициализируем пустую библиотеку
+    print(empty_library.get_next_book_id())  # проверяем следующий id для пустой библиотеки
+
     list_books = [
         Book(id_=book_dict["id"], name=book_dict["name"], pages=book_dict["pages"]) for book_dict in BOOKS_DATABASE
     ]
-    for book in list_books:
-        print(book)  # проверяем метод __str__
+    library_with_books = Library(books=list_books)  # инициализируем библиотеку с книгами
+    print(library_with_books.get_next_book_id())  # проверяем следующий id для непустой библиотеки
 
-    print(list_books)  # проверяем метод __repr__
+    print(library_with_books.get_index_by_book_id(1))  # проверяем индекс книги с id = 1
